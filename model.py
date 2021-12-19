@@ -34,7 +34,7 @@ class PoolerWithClassifier(nn.Layer):
     def forward(self, sequence_output):
         ''' sequence_output: [bsz,seq_len,dim] '''
         pooled_avg=self.avg_pool(sequence_output[:,1:].transpose((0,2,1))).squeeze()  #[bsz dim]
-        pooled_max=self.avg_pool(sequence_output[:,1:].transpose((0,2,1))).squeeze()
+        pooled_max=self.max_pool(sequence_output[:,1:].transpose((0,2,1))).squeeze()
         pooled_output = paddle.concat([sequence_output[:,0],pooled_avg,pooled_max],axis=1) #[bsz,3dim] concate有助于保存信息，能用拼接就用拼接
         pooled_output=self.activation(self.dense(pooled_output))
         pooled_output=self.classifier(self.dropout(pooled_output))
