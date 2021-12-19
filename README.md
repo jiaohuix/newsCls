@@ -1,4 +1,6 @@
 ## 飞桨常规赛：中文新闻文本标题分类 - 11月第6名方案
+本项目使用roberta-wwm-ext，将模型输出经mean pool和max pool 的结果和cls拼接起来，然后过一层全连接获取输出。epoch=5,用四卡跑大概2h,在测试集上89.2，详见
+[aistudio](https://aistudio.baidu.com/aistudio/projectdetail/3263748)
 ### 模型训练
 ```shell
 $unset CUDA_VISIBLE_DEVICES
