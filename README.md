@@ -1,4 +1,4 @@
-## 新闻标题分类
+## 飞桨常规赛：中文新闻文本标题分类 - 11月第6名方案
 ### 模型训练
 ```shell
 $unset CUDA_VISIBLE_DEVICES
