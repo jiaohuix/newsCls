@@ -229,16 +229,7 @@ def do_train():
     # Generate parameter names needed to perform weight decay.
     lr=5e-5
     classifier_lr=4e-5
-    parameters=[
-        {
-            'params': [p for n, p in model.named_parameters() if 'encoder.layers' in n],
-            'lr': lr
-        },
-        {
-        'params': [p for n, p in model.named_parameters() if 'layer_norm' in n or 'classifier' in n],
-        'lr': classifier_lr  # 单独针对全连接层
-    }
-    ]
+
     # All bias and LayerNorm parameters are excluded.
     decay_params = [
         p.name for n, p in model.named_parameters()
@@ -247,19 +238,13 @@ def do_train():
     optimizer = paddle.optimizer.AdamW(
         learning_rate=lr_scheduler,
         parameters=model.parameters(),
-        # parameters=parameters,
         weight_decay=args.weight_decay,
         apply_decay_param_fun=lambda x: x in decay_params
     )
 
     criterion = paddle.nn.loss.CrossEntropyLoss()
     criterion2=AccLoss(reduction='mean')
-    # import json
-    # with open('label_freq.json','r',encoding='utf-8') as f:
-    #     label_freq=json.load(f)
-    # from loss import get_inv_freq
-    # w=get_inv_freq(freq=label_freq.values(),plus=1,norm=True)
-    # criterion = FocalLoss(weight=paddle.to_tensor(w))
+
 
     metric = paddle.metric.Accuracy()
 
@@ -299,24 +284,6 @@ def do_train():
                     10 / (time.time() - tic_train)))
                 tic_train = time.time()
 
-            # loss.backward()
-            # # 对抗训练
-            # fgm(method='attack')
-            # logits1, kl_loss_adv = model(input_ids=input_ids, token_type_ids=token_type_ids)
-            # ce_loss_adv = criterion(logits1, labels)
-            #
-            # if kl_loss_adv > 0:
-            #     loss_adv = ce_loss_adv + kl_loss_adv * args.rdrop_coef
-            # else:
-            #     loss_adv = ce_loss_adv
-            # loss_adv.backward()
-            # fgm(method='restore')
-            # 更新参数
-            # optimizer.step()
-            # lr_scheduler.step()
-            # optimizer.clear_grad()
-
-
             # Step3：使用 Step1中定义的 GradScaler 完成 loss 的缩放，用缩放后的 loss 进行反向传播
             scaled = scaler.scale(loss)
             scaled.backward()
@@ -340,7 +307,7 @@ def do_train():
             if global_step == args.max_steps:
                 return
 
-    if rank == 0:  # 必须判断是否是主进程，否则其他会先被关掉，然后再试图保存。
+    if rank == 0:  
         save_dir = os.path.join(args.save_dir, "model_final")
         save_model(model, tokenizer, save_dir)
 
